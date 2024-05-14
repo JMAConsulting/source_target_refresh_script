@@ -2,7 +2,7 @@
 
 This script refresh a target site's CMS and CiviCRM databases with respective source databases or create a copy of source site as target site as per given target parmeters.
 
-###Example
+### Example
 
 - Read help
 ```sh
