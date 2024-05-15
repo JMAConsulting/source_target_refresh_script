@@ -14,6 +14,11 @@ esac
 
 source "$CALLEDPATH/setup.conf";
 
+function target_mysql_cmd() {
+  echo "mysql -u $TARGET_MYSQL_USER -p$TARGET_MYSQL_PASS $TARGET_DB_ARGS";
+}
+
+TARGET_MYSQLCMD=$(target_mysql_cmd)
 
 get_target_directory() {
 if [ ! -e $TARGET_DIR ]; then
@@ -31,7 +36,7 @@ get_source_dump() {
   fi
 
 
-  mysqldump -u $SOURCE_MYSQL_USER -p$SOURCE_MYSQL_PASS --add-drop-table $SOURCE_CIVI_DB > ~/source_civicrm.sql
+  mysqldump -u $SOURCE_MYSQL_USER -p$SOURCE_MYSQL_PASS -h $SOURCE_DB_ARGS --add-drop-table $SOURCE_CIVI_DB > ~/source_civicrm.sql
   sed -i 's/DEFINER=[^*]*\*/\*/g' ~/source_civicrm.sql
   sed -i 's/DEFINER=[^*]*\*/\*/g' ~/source_$CMS.sql
 }
@@ -42,11 +47,11 @@ copy_source_to_target() {
 
 create_target_db() {
   echo "Create drupal database for target site";
-  db_exists=`mysql -u $TARGET_MYSQL_USER -p$TARGET_MYSQL_PASS -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '$TARGET_DRUPAL_DB'" | wc -c`
+  db_exists=`$TARGET_MYSQLCMD -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '$TARGET_DRUPAL_DB'" | wc -c`
   if [ $db_exists = 0 ]; then
     echo $password | sudo -S mysql -e "CREATE DATABASE $TARGET_DRUPAL_DB";
   fi
-  db_exists=`mysql -u $TARGET_MYSQL_USER -p$TARGET_MYSQL_PASS -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '$TARGET_CIVI_DB'" | wc -c`
+  db_exists=`$TARGET_MYSQLCMD -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '$TARGET_CIVI_DB'" | wc -c`
   if [ $db_exists = 0 ]; then
     echo "Create civicrm database for target site";
     echo $password | sudo -S mysql -e "CREATE DATABASE $TARGET_CIVI_DB";
@@ -60,8 +65,8 @@ create_target_db() {
 
 dump_target_db() {
   echo "Dumping target databases with source mysqldumps";
-  mysql -u $TARGET_MYSQL_USER -p$TARGET_MYSQL_PASS $TARGET_DRUPAL_DB < ~/source_$CMS.sql
-  mysql -u $TARGET_MYSQL_USER -p$TARGET_MYSQL_PASS $TARGET_CIVI_DB < ~/source_civicrm.sql
+  $TARGET_MYSQLCMD $TARGET_DRUPAL_DB < ~/source_$CMS.sql
+  $TARGET_MYSQLCMD $TARGET_CIVI_DB < ~/source_civicrm.sql
   echo "Remove source site mysqldumps"
   echo $password | sudo -S rm ~/source_$CMS.sql
   echo $password | sudo -S rm ~/source_civicrm.sql
@@ -89,7 +94,7 @@ case "$1" in
     ;;
   print_var)
     echo $CMS
-    echo $TARGET_MYSQL_USER
+    echo $TARGET_MYSQLCMD
     ;;
   help)
     help
