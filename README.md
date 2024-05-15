@@ -7,7 +7,7 @@ This script refresh a target site's CMS and CiviCRM databases with respective so
 - Read help
 ```sh
 $sh source_target_refresh.sh help
-Usage: refreshsite.sh {refreshsite|drupal|createdb|droptables|solr_start|solr_stop|help}
+Usage: refreshsite.sh {refreshsite|copysite|print_var|help}
   refreshsite - Refresh a target/staging site with sql dumps of source/production site
   copysite - Create a site using codebase and dumps of source site
   print_var - Just to test if the variables are included from the source file
