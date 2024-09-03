@@ -20,7 +20,7 @@ Usage: refreshsite.sh {refreshsite|copysite|print_var|help}
 $sh source_target_refresh.sh copysite
 ```
 
-- Copy site
+- Refresh site
 ```sh
 $sh source_target_refresh.sh refreshsite
 ```
